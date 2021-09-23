@@ -106,13 +106,6 @@ int checksum_compare(char *a, char *b);
 cJSON *load_json(char *json);
 
 /**
- * Gets the package.json file from a mirror [url]
- *
- * @param url the repo
- */
-cJSON *get_repo_json(char* url);
-
-/**
  * Verifies the checksum of a package [package] downloaded with the checksum of the
  * mirror [mirror]
  *

@@ -19,7 +19,7 @@ message(STATUS "[${CJSON_LIB}] [${CURL_LIB}] [${OPENSSL}]")
 
 set(CMAKE_C_STANDARD 99)
 
-add_library(uspp SHARED dephandle.c dephandle.h fm.c fm.h uspp.c uspp.h)
+add_library(uspp SHARED dephandle.c dephandle.h fm.c fm.h mem.c mem.h repo.c repo.h uspp.c uspp.h)
 #add_library(uspm uspm.c uspm.h)
 
 target_link_libraries(uspp LINK_PUBLIC ${CJSON_LIB} curl OpenSSL::SSL)
@@ -32,6 +32,8 @@ if (${APPLE})
     install(FILES uspp.h DESTINATION /usr/local/include/uspm)
     install(FILES dephandle.h DESTINATION /usr/local/include/uspm)
     install(FILES fm.h DESTINATION /usr/local/include/uspm)
+    install(FILES mem.h DESTINATION /usr/local/include/uspm)
+    install(FILES repo.h DESTINATION /usr/local/include/uspm)
 else()
     install(TARGETS uspp ARCHIVE DESTINATION /usr/local/lib LIBRARY DESTINATION /usr/local/lib)
     install(FILES uspp.h DESTINATION /usr/include/uspm)

@@ -7,7 +7,7 @@
 #include "fm.h"
 #include "dephandle.h"
 #include "uspp.h"
-#include "config.h"
+#include "build_config.h"
 
 /**
  * Given a package name [package], installs the package file (and, if necessary,
