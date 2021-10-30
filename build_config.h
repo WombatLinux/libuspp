@@ -4,6 +4,7 @@
 
 #ifndef USPM_BUILD_CONFIG_H
 #define USPM_BUILD_CONFIG_H
+#define VERSION 1.4
 
 /* undef to disable */
 

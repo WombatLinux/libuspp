@@ -114,13 +114,4 @@ cJSON *load_json(char *json);
  */
 int verify_checksum(char *mirror, char *package);
 
-/**
- * Checks if a package exists
- * @param mirror the domain that holds the repos
- * @param folder The folder (core, extra, community) that data is held in
- * @param package
- * @return
- */
-int check_if_package_exists(char *mirror, char *folder, char *package);
-
 #endif //USPM_FM_H

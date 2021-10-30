@@ -6,11 +6,106 @@
 #include <cjson/cJSON.h>
 #include <stdlib.h>
 #include <zconf.h>
-#include <string.h>
 #include <stdio.h>
 #include <curl/curl.h>
-#include <openssl/md5.h>
+#include <string.h>
 #include "mem.h"
+#include "fm.h"
+
+int check_if_package_exists(char *mirror, char *folder, char *package) {
+    char *url = concat(mirror, folder);
+
+    cJSON *json = get_repo_json(url);
+
+    cJSON *packagejson = cJSON_GetObjectItem(json, package);
+
+    if (packagejson == NULL) {
+        return 1;
+    }
+
+    return 0;
+}
+
+/**
+ * Downloads a package [package] file from a mirror [mirror]
+ *
+ *
+ * @param mirror the web mirror to load from
+ * @param package the package
+ */
+int download_package(char *mirror, char *package) {
+    CURL *curl;
+    FILE *fp;
+    CURLcode res;
+
+    int folder = 0;
+
+    char *url = mirror;
+
+    if (check_if_package_exists(mirror, "core/", package) == 0) {
+        folder = 1;
+
+    } else if (check_if_package_exists(mirror, "extra/", package) == 0) {
+        folder = 2;
+    } else if (check_if_package_exists(mirror, "community/", package) == 0) {
+        folder = 3;
+    }
+
+    switch(folder) {
+        case (1): url = concat(url, "core/"); break;
+        case (2): url = concat(url, "extra/"); break;
+        case (3): url = concat(url, "community/"); break;
+        default: return 1; // error
+    }
+
+    mirror = url;
+
+    url = concat(url, package);
+
+
+    url = concat(url, ".uspm");
+    printf("%s\n", url);
+
+    char outfilename[FILENAME_MAX] = "";
+    strcpy(outfilename, concat(package, ".uspm"));
+    curl = curl_easy_init();
+    if (curl) {
+        fp = fopen(outfilename, "wb");
+        curl_easy_setopt(curl, CURLOPT_URL, url);
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_data);
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, fp);
+        res = curl_easy_perform(curl);
+
+        if(res != CURLE_OK) {
+            printf("fail");
+            return 1;
+        }
+
+        long http_code = 0;
+        curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
+
+        if (http_code == 200 && res != CURLE_ABORTED_BY_CALLBACK)
+        {
+            // success do not thing
+        }
+        else
+        {
+            printf("Failed to download file\n");
+            curl_easy_cleanup(curl);
+            return 1;
+        }
+        /* always cleanup */
+        curl_easy_cleanup(curl);
+        fclose(fp);
+    }
+
+    free(url);
+
+#ifdef _CHECKSUM_
+    if (verify_checksum(mirror, package) != 0) return 1;
+#endif
+    return 0;
+}
 
 /**
  * Gets the package.json file from a mirror [url]
@@ -53,7 +148,7 @@ cJSON *get_repo_json(char *url) {
 
     /* some servers don't like requests that are made without a user-agent
        field, so we provide one */
-    curl_easy_setopt(curl_handle, CURLOPT_USERAGENT, "libcurl-agent/1.0");
+    curl_easy_setopt(curl_handle, CURLOPT_USERAGENT, "libcurl-agent/");
 
     /* get it! */
     res = curl_easy_perform(curl_handle);
