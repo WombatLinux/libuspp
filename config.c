@@ -17,7 +17,7 @@
  */
 int check_packages_file() {
     if (access("packages.json", F_OK) != -1) {
-        cJSON *root = load_file("packages.json");
+        cJSON *root = load_json_file("packages.json");
 
         return 0;
         // printf("%s\n", json);
@@ -57,13 +57,24 @@ void create_packages_file() {
 }
 
 /**
+ * Loads JSON from a char array [json]
+ *
+ * @param json the char array to load as a JSON object
+ */
+cJSON *load_json(char *json) {
+    cJSON *out = cJSON_Parse(json);
+
+    return out;
+}
+
+/**
  * Given a filename/file location [file], attempts to parse as JSON
  * and then loads it in as a cJSON object.
  *
  * @param file file to load
  * @returnjson format of file
  */
-cJSON *load_file(char *file) {
+cJSON *load_json_file(char *file) {
     if (access(file, FOK) != -1) {
         /* declare a file pointer */
         FILE *infile;
@@ -114,10 +125,13 @@ void create_config_file() {
     cJSON *root;
     printf("Creating config file with default values\n");
     root = cJSON_CreateObject();
+    cJSON *mirror = cJSON_AddItemToObject(root, "mirrors", cJSON_CreateArray());
+
+    cJSON_AddItemToArray(mirror, cJSON_CreateString("http://repo.wombatlinux.org/"));
+    cJSON_AddItemToObject(root, "storage_location", cJSON_CreateString("/var/uspm/storage"));
 
     /* add data to uspm package */
     /* FIXME: Change this to match new stuff */
-    cJSON_AddItemToObject(root, "mirror", cJSON_CreateString(("http://repo.wombatlinux.org/")));
 
     out = cJSON_Print(root);
 
@@ -137,7 +151,7 @@ void create_config_file() {
  */
 int check_config_file() {
     if (access("config.json", F_OK) != -1) {
-        cJSON *root = load_file("packages.json");
+        cJSON *root = load_json_file("packages.json");
 
         return 0;
         // printf("%s\n", json);
@@ -176,7 +190,7 @@ void write_config_file(char *out) {
  * @param packagename package to remove
  */
 int remove_from_packages(char *packagename) {
-    cJSON *root = load_file("packages.json");
+    cJSON *root = load_json_file("packages.json");
     cJSON_DeleteItemFromObject(root, packagename);
 
     char *out = cJSON_Print(root);
@@ -197,7 +211,7 @@ int remove_from_packages(char *packagename) {
 int add_to_packages(char *packagename, cJSON *packagedata) {
     chdir("/var/uspm/storage/");
 
-    cJSON *root = load_file("packages.json");
+    cJSON *root = load_json_file("packages.json");
 
 
     cJSON_AddItemToObject(root, packagename, packagedata);

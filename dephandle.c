@@ -8,7 +8,9 @@
 #include "dephandle.h"
 #include <stdlib.h>
 #include "uspp.h"
+#include "repo.h"
 #include "build_config.h"
+#include "config.h"
 
 // utility function to compare each substring of version1 and
 // version2
@@ -105,9 +107,9 @@ int check_for_dependencies(char *package) {
     char *file = concat("./", package);
     file = concat(file, "/PACKAGEDATA");
 
-    cJSON *packagedata = load_file(file);
+    cJSON *packagedata = load_json_file(file);
 
-    cJSON *root = load_file("packages.json");
+    cJSON *root = load_json_file("packages.json");
 
     cJSON *dependencies = cJSON_GetObjectItem(packagedata, "dependencies");
 
@@ -161,15 +163,15 @@ int install_dependency(char *package, char *minversion) {
     char *filename = concat(package, ".uspm");
 
     if (access(filename, F_OK) == -1) {
-        cJSON *config = load_file("config.json");
-        if (download_package(cJSON_GetObjectItem(config, "mirror")->valuestring, package) != 0) return 1;
+        cJSON *config = load_json_file("config.json");
+        if (download_package(cJSON_GetObjectItem(config, "mirrors"), package) != 0) return 1;
     }
 
     char *command = concat("tar -xf ", filename);
     system(command);
 
     filename = concat(package, "/PACKAGEDATA");
-    cJSON *root = load_file(filename);
+    cJSON *root = load_json_file(filename);
     char *version = cJSON_GetObjectItem(root, "version")->valuestring;
     if (check_version(version, minversion) < 0) {
         printf("No good version of dependency found. Aborting.\n");

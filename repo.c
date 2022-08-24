@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <curl/curl.h>
 #include <string.h>
+#include "build_config.h"
 #include "mem.h"
 #include "fm.h"
 
@@ -33,33 +34,51 @@ int check_if_package_exists(char *mirror, char *folder, char *package) {
  * @param mirror the web mirror to load from
  * @param package the package
  */
-int download_package(char *mirror, char *package) {
+int download_package(cJSON *mirrors, char *package) {
     CURL *curl;
     FILE *fp;
     CURLcode res;
 
     int folder = 0;
 
-    char *url = mirror;
+    cJSON* mirrorJson;
+    char* url;
 
-    if (check_if_package_exists(mirror, "core/", package) == 0) {
-        folder = 1;
+    cJSON_ArrayForEach(mirrorJson, mirrors) {
+        url = mirrorJson->valuestring;
 
-    } else if (check_if_package_exists(mirror, "extra/", package) == 0) {
-        folder = 2;
-    } else if (check_if_package_exists(mirror, "community/", package) == 0) {
-        folder = 3;
+        if (check_if_package_exists(url, "core/", package) == 0) {
+            folder = 1;
+
+        } else if (check_if_package_exists(url, "extra/", package) == 0) {
+            folder = 2;
+        } else if (check_if_package_exists(url, "community/", package) == 0) {
+            folder = 3;
+        }
+
+        switch (folder) {
+            case (1):
+                url = concat(url, "core/");
+                break;
+            case (2):
+                url = concat(url, "extra/");
+                break;
+            case (3):
+                url = concat(url, "community/");
+                break;
+            default:
+                folder = 0;
+        }
+
+        if (folder != 0) {
+            break;
+        }
     }
 
-    switch(folder) {
-        case (1): url = concat(url, "core/"); break;
-        case (2): url = concat(url, "extra/"); break;
-        case (3): url = concat(url, "community/"); break;
-        default: return 1; // error
-    }
-
-    mirror = url;
-
+    /* for checksum */
+#ifdef _CHECKSUM_
+    char* mirror = url;
+#endif
     url = concat(url, package);
 
 
@@ -102,7 +121,11 @@ int download_package(char *mirror, char *package) {
     free(url);
 
 #ifdef _CHECKSUM_
-    if (verify_checksum(mirror, package) != 0) return 1;
+    if (verify_checksum(mirror, package) != 0) {
+        free(mirror);
+        return 1;
+    }
+    free(mirror);
 #endif
     return 0;
 }
@@ -177,3 +200,4 @@ cJSON *get_repo_json(char *url) {
 
     return data;
 }
+

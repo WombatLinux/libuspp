@@ -4,10 +4,13 @@
 
 #include <unistd.h>
 #include <stdlib.h>
+#include "build_config.h"
 #include "fm.h"
 #include "dephandle.h"
 #include "uspp.h"
 #include "build_config.h"
+#include "repo.h"
+#include "config.h"
 
 /**
  * Given a package name [package], installs the package file (and, if necessary,
@@ -56,15 +59,15 @@ int install_package_file(char *package) {
 int install_package(char *package) {
     char *filename = concat(package, ".uspm");
     if (access(filename,F_OK) == -1) {
-        cJSON *config = load_file("config.json");
-        if (download_package(cJSON_GetObjectItem(config, "mirror")->valuestring, package) != 0) return 1;
+        cJSON *config = load_json_file("config.json");
+        if (cJSON_GetObjectItem(config, "mirrors"), package) != 0) return 1;
     }
 
     if (install_package_file(package) == 0) {
         char *file = concat("./", package);
         file = concat(file, "/PACKAGEDATA");
 
-        cJSON *packagedata = load_file(file);
+        cJSON *packagedata = load_json_file(file);
 
         free(file);
 

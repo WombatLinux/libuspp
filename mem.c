@@ -1,11 +1,7 @@
 #include <cjson/cJSON.h>
 #include <stdlib.h>
-#include <zconf.h>
 #include <string.h>
 #include <stdio.h>
-#include <curl/curl.h>
-#include <openssl/md5.h>
-#include "fm.h"
 #include "build_config.h"
 #include "repo.h"
 #include "mem.h"

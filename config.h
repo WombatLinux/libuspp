@@ -45,6 +45,13 @@ void write_config_file(char *out);
  * @param file file to load
  * @return file in JSON format
  */
-cJSON *load_file(char *file);
+cJSON *load_json_file(char *file);
+
+/**
+ * @param json the char array to load as a JSON object
+ * @param json
+ * @return cJSON
+ */
+cJSON *load_json(char *json);
 
 #endif

@@ -20,14 +20,6 @@
 char* concat(const char *s1, const char *s2);
 
 /**
- * Given a filename/file location [file], attempts to parse as JSON
- * and then loads it in as a cJSON object.
- *
- * @param file file to load
- */
-cJSON *load_file(char *file);
-
-/**
  * Writes a fresh new packages file
  *
  * @param out the char array to output to the file
@@ -56,15 +48,6 @@ int add_to_packages(char *packagename, cJSON *packagedata);
  * @param packagename package to remove
  */
 int remove_from_packages(char *packagename);
-
-/**
- * Downloads a package [package] file from a mirror [mirror]
- *
- *
- * @param mirror the web mirror to load from
- * @param package the package
- */
-int download_package(char *mirror, char *package);
 
 /**
  * Checks for the existence of a config file
@@ -99,13 +82,6 @@ void checksum(char *filename, char *o[16]);
 int checksum_compare(char *a, char *b);
 
 /**
- * @param json the char array to load as a JSON object
- * @param json
- * @return cJSON
- */
-cJSON *load_json(char *json);
-
-/**
  * Verifies the checksum of a package [package] downloaded with the checksum of the
  * mirror [mirror]
  *
@@ -113,5 +89,7 @@ cJSON *load_json(char *json);
  * @param mirror the repo to pull from
  */
 int verify_checksum(char *mirror, char *package);
+
+size_t write_data(void *ptr, size_t size, size_t nmemb, FILE *stream);
 
 #endif //USPM_FM_H

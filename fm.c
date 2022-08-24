@@ -7,11 +7,11 @@
 #include <zconf.h>
 #include <string.h>
 #include <stdio.h>
-#include <curl/curl.h>
 #include <openssl/md5.h>
 #include "fm.h"
 #include "build_config.h"
 #include "repo.h"
+#include "config.h"
 
 size_t blank(void *buffer, size_t size, size_t nmemb, void *userp)
 {
@@ -30,58 +30,6 @@ char *concat(const char *s1, const char *s2) {
     strcpy(result, s1);
     strcat(result, s2);
     return result;
-}
-
-/**
- * Given a filename/file location [file], attempts to parse as JSON
- * and then loads it in as a cJSON object.
- *
- * @param file file to load
- */
-cJSON *load_file(char *file) {
-    if (access(file, F_OK) != -1) {
-        /* declare a file pointer */
-        FILE *infile;
-        char *buffer;
-        long numbytes;
-
-        /* open an existing file for reading */
-        infile = fopen(file, "r");
-
-        /* Get the number of bytes */
-        fseek(infile, 0L, SEEK_END);
-        numbytes = ftell(infile);
-
-        /* reset the file position indicator to
-        the beginning of the file */
-        fseek(infile, 0L, SEEK_SET);
-
-        /* grab sufficient memory for the
-        buffer to hold the text */
-        buffer = (char *) calloc(numbytes, sizeof(char));
-
-        /* memory error */
-        if (buffer == NULL)
-            return NULL;
-
-        /* copy all the text into the buffer */
-        fread(buffer, sizeof(char), numbytes, infile);
-        fclose(infile);
-
-        /* confirm we have read the file by
-        outputing it to the console */
-        //printf("The file contains this text\n\n%s", buffer);
-
-        cJSON *root = load_json(buffer);
-
-        /* free the memory we used for the buffer */
-        free(buffer);
-
-        return root;
-    } else {
-        printf("No file %s\n", file);
-        return NULL;
-    }
 }
 
 /**
@@ -129,7 +77,7 @@ void write_config_file(char *out) {
 int add_to_packages(char *packagename, cJSON *packagedata) {
     chdir("/var/uspm/storage/");
 
-    cJSON *root = load_file("packages.json");
+    cJSON *root = load_json_file("packages.json");
 
 
     cJSON_AddItemToObject(root, packagename, packagedata);
@@ -150,7 +98,7 @@ int add_to_packages(char *packagename, cJSON *packagedata) {
  * @param packagename package to remove
  */
 int remove_from_packages(char *packagename) {
-    cJSON *root = load_file("packages.json");
+    cJSON *root = load_json_file("packages.json");
     cJSON_DeleteItemFromObject(root, packagename);
 
     char *out = cJSON_Print(root);
@@ -220,7 +168,7 @@ void create_config_file() {
  */
 int check_packages_file() {
     if (access("packages.json", F_OK) != -1) {
-        cJSON *root = load_file("packages.json");
+        cJSON *root = load_json_file("packages.json");
 
         return 0;
         // printf("%s\n", json);
@@ -238,7 +186,7 @@ int check_packages_file() {
  */
 int check_config_file() {
     if (access("config.json", F_OK) != -1) {
-        cJSON *root = load_file("packages.json");
+        cJSON *root = load_json_file("packages.json");
 
         return 0;
         // printf("%s\n", json);
@@ -246,17 +194,6 @@ int check_config_file() {
         create_config_file();
         return 1;
     }
-}
-
-/**
- * Loads JSON from a char array [json]
- *
- * @param json the char array to load as a JSON object
- */
-cJSON *load_json(char *json) {
-    cJSON *out = cJSON_Parse(json);
-
-    return out;
 }
 
 /**

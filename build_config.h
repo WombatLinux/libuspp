@@ -12,9 +12,9 @@
 #define _CHECKSUM_
 
 /* Enables Debug stuff */
-#undef _DEBUG_
+#define _DEBUG_
 
-/* Enables repo lookup feature
+/* Enables repo lookup feature */
 #define _REPO_LOOKUP_
 
 #define _CACHE_MIRROR_
